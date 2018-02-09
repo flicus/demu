@@ -22,34 +22,12 @@
  * SOFTWARE.
  */
 
-group 'org.schors'
-version '1.0-SNAPSHOT'
-
-if (!JavaVersion.current().java8Compatible) {
-    throw new IllegalStateException('''A Haiku:
-                                      |  This needs Java 8,
-                                      |  You are using something else,
-                                      |  Refresh. Try again.'''.stripMargin())
-}
-
-ext.jdiameter_version = '1.7.1-123'
-ext.vaadin_version = '8.1.4'
-ext.vertx_version = '3.5.0'
-
-// Vaadin plugin requires Gradle 4.0+
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
-}
-
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        testCompile group: 'junit', name: 'junit', version: '4.12'
-        compile 'log4j:log4j:1.2.17'
-    }
+dependencies {
+    compile "io.vertx:vertx-core:$vertx_version"
+    compile "io.vertx:vertx-web:$vertx_version"
+    compile "io.vertx:vertx-jdbc-client:$vertx_version"
+    compile 'com.h2database:h2:1.4.196'
+    compileOnly "org.mobicents.diameter:jdiameter-api:$jdiameter_version"
+    compileOnly "org.mobicents.diameter:jdiameter-impl:$jdiameter_version"
+    compileOnly "org.mobicents.diameter:restcomm-diameter-mux-jar:$jdiameter_version"
 }

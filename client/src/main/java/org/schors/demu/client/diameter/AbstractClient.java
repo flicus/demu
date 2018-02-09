@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package org.schors.demu.client;
+package org.schors.demu.client.diameter;
 
 import org.jdiameter.api.*;
 import org.jdiameter.api.app.AppAnswerEvent;

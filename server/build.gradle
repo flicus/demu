@@ -1,0 +1,6 @@
+
+dependencies {
+    compile "org.mobicents.diameter:jdiameter-api:$jdiameter_version"
+    compile "org.mobicents.diameter:jdiameter-impl:$jdiameter_version"
+    compile "org.mobicents.diameter:restcomm-diameter-mux-jar:$jdiameter_version"
+}

@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.schors.demu.client;
+package org.schors.demu.client.diameter;
 
 import org.apache.log4j.Logger;
 import org.jdiameter.api.*;

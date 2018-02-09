@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package org.schors.demu.client;
+package org.schors.demu.client.diameter;
 
 import org.apache.log4j.Logger;
 import org.jdiameter.api.Avp;
