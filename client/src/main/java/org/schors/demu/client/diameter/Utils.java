@@ -24,6 +24,7 @@
 
 package org.schors.demu.client.diameter;
 
+import io.vertx.core.json.JsonObject;
 import org.apache.log4j.Logger;
 import org.jdiameter.api.Avp;
 import org.jdiameter.api.AvpDataException;
@@ -48,6 +49,100 @@ public class Utils {
             logger.info("- - - - - - - - - - - - - - - - AVPs - - - - - - - - - - - - - - - -");
             printAvps(message.getAvps());
         }
+    }
+
+    public static String requestType(int rtype) {
+        switch (rtype) {
+            case 1:
+                return "INITIAL_REQUEST";
+            case 2:
+                return "UPDATE_REQUEST";
+            case 3:
+                return "TERMINATION_REQUEST";
+            case 4:
+                return "EVENT_REQUEST";
+        }
+        return "UNKNOWN";
+    }
+
+
+    public static JsonObject diameter2json(Message message) {
+        JsonObject result = new JsonObject();
+        result.put("session-id", message.getSessionId());
+        result.put("command-code", message.getCommandCode());
+        result.put("is-request", message.isRequest());
+        if (!message.isRequest()) {
+            try {
+                result.put("is-ok", message.getAvps().getAvp(268).getInteger32() == 2001);
+            } catch (AvpDataException e) {
+                e.printStackTrace();
+            }
+        }
+        result.put("avps", diameter2json(message.getAvps()));
+        return result;
+    }
+
+    public static JsonObject diameter2json(AvpSet avps) {
+        JsonObject result = new JsonObject();
+        for (Avp avp : avps) {
+            AvpRepresentation avpRep = AVP_DICTIONARY.getAvp(avp.getCode(), avp.getVendorId());
+            String name = avpRep.getName();
+            JsonObject obj = new JsonObject();
+            try {
+                switch (avpRep.getType()) {
+                    case "Grouped":
+                        obj.put("value", diameter2json(avp.getGrouped()));
+                        break;
+                    case "Integer32":
+                        obj.put("value", avp.getInteger32());
+                        break;
+                    case "Unsigned32":
+                        obj.put("value", avp.getUnsigned32());
+                        break;
+                    case "Float64":
+                        obj.put("value", avp.getFloat64());
+                        break;
+                    case "Integer64":
+                        obj.put("value", avp.getInteger64());
+                        break;
+                    case "Time":
+                        obj.put("value", avp.getTime());
+                        break;
+                    case "Unsigned64":
+                        obj.put("value", avp.getUnsigned64());
+                        break;
+                    default:
+                        obj.put("value", avp.getUTF8String().replaceAll("\r", "").replaceAll("\n", ""));
+                }
+            }catch (Exception e) {
+                logger.warn(e,e);
+            }
+            obj.put("type", avpRep.getType());
+            result.put(name, obj);
+        }
+        return result;
+    }
+
+    public static JsonObject prepareForUI(Message message) {
+        JsonObject result = new JsonObject()
+                .put("rtype", message.isRequest() ? 1 : 2)
+                .put("id", message.getSessionId());
+        for (Avp avp : message.getAvps()) {
+            try {
+                if (avp.getCode() == 268) { //result code
+                    long code = avp.getUnsigned32();
+                    result.put("code", code);
+                    result.put("success", code == 2001);
+                }
+                if (avp.getCode() == 416) { //request type
+                    int code = avp.getInteger32();
+                    result.put("mtype", requestType(code));
+                }
+            } catch (AvpDataException e) {
+                logger.warn(e, e);
+            }
+        }
+        return result;
     }
 
     public static void printAvps(AvpSet avps) {

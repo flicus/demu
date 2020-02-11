@@ -24,6 +24,7 @@
 
 package org.schors.demu.client.diameter;
 
+import io.vertx.core.Vertx;
 import org.jdiameter.api.*;
 import org.jdiameter.api.app.AppAnswerEvent;
 import org.jdiameter.api.app.AppRequestEvent;
@@ -34,6 +35,7 @@ import org.jdiameter.api.cca.ClientCCASession;
 import org.jdiameter.api.cca.ClientCCASessionListener;
 import org.jdiameter.api.cca.ServerCCASession;
 import org.jdiameter.client.api.ISessionFactory;
+import org.jdiameter.client.impl.helpers.XMLConfiguration;
 import org.jdiameter.common.api.app.cca.IClientCCASessionContext;
 import org.jdiameter.common.impl.app.cca.CCASessionFactoryImpl;
 import org.slf4j.Logger;
@@ -57,10 +59,19 @@ public abstract class AbstractClient implements EventListener<Request, Answer>, 
     protected ClientCCASession clientCCASession;
     protected int ccRequestNumber = 0;
 
-    public void init(InputStream configStream, String clientID, ApplicationId appId) throws Exception {
+    protected EventNotifier eventNotifier;
+    protected Vertx vertx;
+
+    public void init(InputStream configStream, String clientID, ApplicationId appId, EventNotifier notifier, Vertx vertx) throws Exception {
+        this.init(new XMLConfiguration(configStream), clientID, appId, notifier, vertx);
+    }
+
+    public void init(Configuration config, String clientID, ApplicationId appId, EventNotifier notifier, Vertx vertx) throws Exception {
+        this.vertx = vertx;
+        this.eventNotifier = notifier;
         this.applicationId = appId;
         stack = new StackCreator();
-        stack.init(configStream, this, this, clientID, true, appId); // lets always pass
+        stack.init(config, this, this, clientID, true, appId); // lets always pass
         this.sessionFactory = (ISessionFactory) this.stack.getSessionFactory();
 
         try {
@@ -74,11 +85,11 @@ public abstract class AbstractClient implements EventListener<Request, Answer>, 
             this.clientCCASession = this.sessionFactory.getNewAppSession(this.sessionFactory.getSessionId("xxTESTxx"), applicationId, ClientCCASession.class,
                     (Object) null);
         } finally {
-            try {
-                configStream.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            try {
+//                configStream.close();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
         }
     }
 

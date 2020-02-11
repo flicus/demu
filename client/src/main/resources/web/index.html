@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/app.css">
+
+    <title>Diameter emulator</title>
+</head>
+<body>
+<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Diameter Emulator</a>
+    <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+    <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+            <a class="nav-link" href="#">Sign out</a>
+        </li>
+    </ul>
+</nav>
+
+<div id="app" class="container-fluid">
+    <div class="row">
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" v-bind:class="{active: currentView=='Sessions'}" href="#" v-on:click="currentView='Sessions'">
+                            <i class="fa fa-server fa-lg"></i>
+                            Sessions <span class="sr-only">(current)</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" v-bind:class="{active: currentView=='Settings'}" href="#" v-on:click="currentView='Settings'">
+                            <i class="fa fa-cog fa-lg"></i>
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <keep-alive>
+            <component v-bind:is="currentComponent" v-bind:config="config" v-bind:requests="requests" v-on:save-cfg="saveConfig"></component>
+        </keep-alive>
+    </div>
+</div>
+<script src="js/jquery-3.4.1.min.js"  crossorigin="anonymous"></script>
+<script src="js/popper.min.js"  crossorigin="anonymous"></script>
+<script src="js/bootstrap.min.js"  crossorigin="anonymous"></script>
+<script src="js/sockjs.min.js" crossorigin="anonymous"></script>
+<script src="js/vertx-eventbus.min.js" crossorigin="anonymous"></script>
+<script src="js/vue.js" crossorigin="anonymous"></script>
+<script src="js/app.js" crossorigin="anonymous"></script>
+</body>
+</html>

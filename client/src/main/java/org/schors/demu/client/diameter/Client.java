@@ -49,9 +49,11 @@ public class Client extends AbstractClient {
 
     private static ApplicationId appId = ApplicationId.createByAuthAppId(0, 4L);
 
+
     public static void main(String[] args) throws Exception {
         Client client = new Client();
-        client.init(Client.class.getClassLoader().getResourceAsStream("config-client.xml"), "Client", appId);
+        GUIConfiguration guiConfiguration = new GUIConfiguration(Client.class.getClassLoader().getResourceAsStream("config-client.xml"));
+        client.init(guiConfiguration, "Client", appId, null, null);
         client.start();
         //wait for connection to peer
         try {
@@ -99,27 +101,64 @@ public class Client extends AbstractClient {
         return serviceContextId;
     }
 
-    private void sendCCRI(ClientCCASession session) throws InternalException, RouteException, IllegalDiameterStateException, OverloadException {
-        JCreditControlRequest ccri = createCCR(CC_REQUEST_TYPE_INITIAL, ccRequestNumber++, session);
-        Utils.printMessage(ccri.getMessage());
-        session.sendCreditControlRequest(ccri);
+    public void sendCCRI(ClientCCASession session) throws InternalException, RouteException, IllegalDiameterStateException, OverloadException {
+        vertx.executeBlocking(promise -> {
+                    try {
+                        JCreditControlRequest ccri = createCCR(CC_REQUEST_TYPE_INITIAL, ccRequestNumber++, session);
+                        Utils.printMessage(ccri.getMessage());
+                        eventNotifier.notifyRequest(Utils.diameter2json(ccri.getMessage()));
+                        session.sendCreditControlRequest(ccri);
+                        promise.complete();
+                    } catch (Exception e) {
+                        promise.fail(e);
+                    }
+                },
+                asyncResult -> {
+
+                });
     }
 
-    private void sendCCRU(ClientCCASession session) throws InternalException, RouteException, IllegalDiameterStateException, OverloadException {
-        JCreditControlRequest ccru = createCCR(CC_REQUEST_TYPE_INTERIM, ccRequestNumber++, session);
-        Utils.printMessage(ccru.getMessage());
-        session.sendCreditControlRequest(ccru);
+    public void sendCCRU(ClientCCASession session) throws InternalException, RouteException, IllegalDiameterStateException, OverloadException {
+        vertx.setTimer(1000, aLong -> {
+            vertx.executeBlocking(promise -> {
+                        try {
+                            JCreditControlRequest ccru = createCCR(CC_REQUEST_TYPE_INTERIM, ccRequestNumber++, session);
+                            Utils.printMessage(ccru.getMessage());
+                            eventNotifier.notifyRequest(Utils.diameter2json(ccru.getMessage()));
+                            session.sendCreditControlRequest(ccru);
+                            promise.complete();
+                        } catch (Exception e) {
+                            promise.fail(e);
+                        }
+                    },
+                    asyncResult -> {
+
+                    });
+        });
     }
 
-    private void sendCCRT(ClientCCASession session) throws InternalException, RouteException, IllegalDiameterStateException, OverloadException {
-        JCreditControlRequest ccrt = createCCR(CC_REQUEST_TYPE_TERMINATE, ccRequestNumber++, session);
-        Utils.printMessage(ccrt.getMessage());
-        session.sendCreditControlRequest(ccrt);
+    public void sendCCRT(ClientCCASession session) throws InternalException, RouteException, IllegalDiameterStateException, OverloadException {
+        vertx.setTimer(1000, aLong -> {
+            vertx.executeBlocking(promise -> {
+                try {
+                    JCreditControlRequest ccrt = createCCR(CC_REQUEST_TYPE_TERMINATE, ccRequestNumber++, session);
+                    Utils.printMessage(ccrt.getMessage());
+                    eventNotifier.notifyRequest(Utils.diameter2json(ccrt.getMessage()));
+                    session.sendCreditControlRequest(ccrt);
+                    promise.complete();
+                } catch (Exception e) {
+                    promise.fail(e);
+                }
+            }, asyncResult -> {
+
+            });
+        });
     }
 
     @Override
     public void doCreditControlAnswer(ClientCCASession session, JCreditControlRequest request, JCreditControlAnswer answer) throws InternalException, IllegalDiameterStateException, RouteException, OverloadException {
         Utils.printMessage(answer.getMessage());
+        eventNotifier.notifyResponse(Utils.diameter2json(answer.getMessage()));
         switch (answer.getRequestTypeAVPValue()) {
             case CC_REQUEST_TYPE_INITIAL:
                 sendCCRU(session);
